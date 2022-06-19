@@ -1,0 +1,13 @@
+__pycache__/
+
+# IDE
+.vscode/
+
+# Tests
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# Program artifacts
+so_importer.log
