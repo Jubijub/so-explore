@@ -32,8 +32,8 @@ def build_questions_params(
     filter: str = None,
     page: int = None,
     pagesize: int = None,
-    fromdate: int = None,
-    todate: int = None,
+    fromdate: int | str = None,
+    todate: int | str = None,
     order: Order = None,
     # pylint: disable=redefined-builtin
     min: int = None,
@@ -53,7 +53,9 @@ def build_questions_params(
         pagesize: Optional, the number of results to retrive per page. Between 0 and 100
         , default is 30.
 
-        fromdate: results older than this epoch timestamp will be ignored.
+        fromdate: results older than this epoch timestamp will be ignored. Accepts a
+        Unix timestamp, or an ISO format TZ aware string such as
+        "2022-01-01T00:00:00.000000+00:00", or any valid ISO format datetime.
 
         todate: results more recent than this epoch timestamp will be ignored.
 
@@ -80,9 +82,9 @@ def build_questions_params(
         a dict containing all the params
     """
     params = {"site": "stackoverflow"}
-    if filter:
+    if filter is not None:
         params["filter"] = filter
-    if page:
+    if page is not None:
         if page < 1:
             so_logger.error(
                 "The page number provided `%s` is not valid. It should be a number"
@@ -102,7 +104,7 @@ def build_questions_params(
                 f"The page number provided {page} is not valid. It should be an integer"
             )
         params["page"] = page
-    if pagesize:
+    if pagesize is not None:
         if pagesize < 1 or pagesize > 30:
             so_logger.error(
                 "The pagesize number provided `%s` is not valid. It should be a number"
@@ -124,27 +126,59 @@ def build_questions_params(
                 " integer"
             )
         params["pagesize"] = pagesize
-    if fromdate:
-        try:
-            _ = datetime.datetime.fromtimestamp(fromdate)
-        except (ValueError, OverflowError) as exc:
-            so_logger.error("The fromdate provided `%s` is not valid.", fromdate)
-            raise ValueError from exc(
-                f"The fromdate provided {fromdate} is not valid. It must be an epoch"
-                " timestamp."
-            )
-        params["fromdate"] = str(int(fromdate))
-    if todate:
-        try:
-            _ = datetime.datetime.fromtimestamp(todate)
-        except (ValueError, OverflowError):
-            so_logger.error("The todate provided `%s` is not valid.", todate)
-            raise ValueError from exc(
-                f"The todate provided {todate} is not valid. It must be an epoch"
-                " timestamp."
-            )
-        params["todate"] = str(int(todate))
-    if order:
+    if fromdate is not None:
+        if isinstance(fromdate, int) or isinstance(fromdate, float):
+            try:
+                _ = datetime.datetime.fromtimestamp(fromdate)
+            except (ValueError, OverflowError) as exc:
+                so_logger.error(
+                    "The fromdate provided `%s` is not a valid Epoch timestamp",
+                    fromdate,
+                )
+                raise ValueError(
+                    f"The fromdate provided '{fromdate}' is not a valid Epoch"
+                    " timestamp."
+                ) from exc
+            params["fromdate"] = str(int(fromdate))
+        else:
+            try:
+                isodate = datetime.datetime.fromisoformat(fromdate)
+            except ValueError as exc:
+                so_logger.error(
+                    "The fromdate provided `%s` is not a valid ISO 8601 date.",
+                    fromdate,
+                )
+                raise ValueError(
+                    f"The fromdate provided '{fromdate}' is not a valid ISO 8601 date."
+                ) from exc
+            params["fromdate"] = str(int(isodate.timestamp()))
+
+    if todate is not None:
+        if isinstance(todate, int) or isinstance(todate, float):
+            try:
+                _ = datetime.datetime.fromtimestamp(todate)
+            except (ValueError, OverflowError) as exc:
+                so_logger.error(
+                    "The todate provided `%s` is not a valid Epoch timestamp",
+                    todate,
+                )
+                raise ValueError(
+                    f"The todate provided '{todate}' is not a valid Epoch timestamp."
+                ) from exc
+            params["todate"] = str(int(todate))
+        else:
+            try:
+                isodate = datetime.datetime.fromisoformat(todate)
+            except ValueError as exc:
+                so_logger.error(
+                    "The todate provided `%s` is not a valid ISO 8601 date.",
+                    todate,
+                )
+                raise ValueError(
+                    f"The todate provided '{todate}' is not a valid ISO 8601 date."
+                ) from exc
+            params["todate"] = str(int(isodate.timestamp()))
+    if order is not None:
         if not isinstance(order, Order):
             raise ValueError(
                 f"The order provided {order} is not valid. It must be an instance of."
@@ -152,19 +186,19 @@ def build_questions_params(
             )
 
         params["order"] = order.value
-    if min:
+    if min is not None:
         if not isinstance(min, int):
             raise ValueError(
                 f"The min provided {min} is not valid. It must be an integer."
             )
         params["min"] = min
-    if max:
+    if max is not None:
         if not isinstance(max, int):
             raise ValueError(
                 f"The max provided {max} is not valid. It must be an integer."
             )
         params["max"] = max
-    if sort:
+    if sort is not None:
         if not isinstance(sort, QuestionSortMethod):
             raise ValueError(
                 f"The sort method provided {sort} is not valid. It must be an instance "
@@ -172,7 +206,7 @@ def build_questions_params(
             )
 
         params["sort"] = sort.value
-    if tagged:
+    if tagged is not None:
         params["tagged"] = tagged
 
     return params
