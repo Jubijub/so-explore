@@ -1,5 +1,5 @@
 """Script to auto update the question bank from Stack Exchange."""
-from argparse import Namespace
+from argparse import ArgumentParser
 import argparse
 import logging
 import colorama
@@ -47,16 +47,12 @@ def init_logging() -> logging.Logger:
 so_logger = init_logging()
 
 
-def parse_args(args: list[str] | None) -> Namespace:
-    """Parses the command line arguments and trigger the relevant actions.
-
-    Arguments
-    ----------
-        args: a List of string arguments such as sys.argv
+def build_args_parser() -> ArgumentParser:
+    """Builds a parser that can process so_importer command line arguments.
 
     Returns
     -------
-        a Namespace object containing the parsed arguments
+        an argparse ArgumentParser
     """
     parser = argparse.ArgumentParser(
         description="Utility to import Stack overflow questions.",
@@ -75,15 +71,15 @@ def parse_args(args: list[str] | None) -> Namespace:
         help="triggers the API authentication process to obtain an API token.",
     )
 
-    parser_fetch = subparsers.add_parser(
-        "fetch",
+    parser_questions = subparsers.add_parser(
+        "questions",
         help="retrieves Stack Overflow topics and update the result database.",
     )
-    parser_fetch.add_argument(
+    parser_questions.add_argument(
         "--filter",
         help="The hash of a filter, as provided by filters/create API method.",
     )
-    parser_fetch.add_argument(
+    parser_questions.add_argument(
         "--page",
         help=(
             "If results fit more than one page, which page to return. 1 is the first"
@@ -91,51 +87,51 @@ def parse_args(args: list[str] | None) -> Namespace:
         ),
         type=int,
     )
-    parser_fetch.add_argument(
+    parser_questions.add_argument(
         "--pagesize",
         help="Defines how many results to provide per page, between 0 and 100.",
         type=int,
     )
-    parser_fetch.add_argument(
+    parser_questions.add_argument(
         "--fromdate",
         help=(
             "Retrieve all questions from this date. If not supplied, will retrieve all"
             " questions."
         ),
     )
-    parser_fetch.add_argument(
+    parser_questions.add_argument(
         "--todate",
         help=(
             "Retrieve all questions until this date. If not supplied, will retrieve all"
             " questions until now."
         ),
     )
-    parser_fetch.add_argument(
+    parser_questions.add_argument(
         "--order",
         help="The order in which to sort the results.",
     )
-    parser_fetch.add_argument(
+    parser_questions.add_argument(
         "--min",
         help="For sort by activity/creation/votes, defines the minimum value to return",
     )
-    parser_fetch.add_argument(
+    parser_questions.add_argument(
         "--max",
         help="For sort by activity/creation/votes, defines the maximum value to return",
     )
-    parser_fetch.add_argument(
+    parser_questions.add_argument(
         "--sort",
         help=(
             "Which sorting method to use : activity, creation, votes, hot, week, month"
         ),
     )
-    parser_fetch.add_argument(
+    parser_questions.add_argument(
         "--tagged",
         help=(
             "Semi-colon delimited list of tags. Will return questions which match all"
             " tags."
         ),
     )
-    return parser.parse_args(args)
+    return parser
 
 
 def main():
@@ -154,7 +150,7 @@ def main():
     #     # Filter question :
     #     get_all_questions(key, token, filter="!)GrKmj4SO9s6)An")
 
-    cmdline = parse_args(None)
+    cmdline = build_args_parser().parse_args(None)
     if not cmdline or not cmdline.action:
         raise Exception("Critical issue in parsing the command line")
     if cmdline.action == "check":
@@ -171,7 +167,8 @@ def main():
         client_id = retrieve_client_id()
         get_authorization_url(client_id)
         get_access_token_from_url()
-    if cmdline.action == "fetch":
+
+    if cmdline.action == "questions":
         key = retrieve_key()
         token = retrieve_token()
 
