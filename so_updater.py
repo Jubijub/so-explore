@@ -47,33 +47,6 @@ def init_logging() -> logging.Logger:
 so_logger = init_logging()
 
 
-def print_check_result(client_id, key, token):
-    """Displays the detailed check results to confirm all Env variables are properly
-    set."""
-    if not client_id:
-        so_logger.error(
-            "The client_ID is missing. Make sure to"
-            " register your app to `https://stackapps.com/apps/oauth/register` and set"
-            " the Environment variable `SO_IMPORTER_CLIENT_ID` with the `clientID`"
-            " value provided by StackApps."
-        )
-    if not key:
-        so_logger.error(
-            "The key is missing. Make sure to"
-            " register your app to `https://stackapps.com/apps/oauth/register` and set"
-            " the Environment variable `SO_IMPORTER_KEY` with the `key` value provided"
-            " by StackApps."
-        )
-    if not token:
-        so_logger.error(
-            "The OAuth token is missing. Make sure to"
-            " use this app with the `-auth` parameter and complete the authentication. "
-            " The command line will print the token. Make sure to set the Environment"
-            " variable `SO_IMPORTER_TOKEN` with the token provided."
-        )
-    so_logger.info("All environment variables could be retrieved.")
-
-
 def parse_args(args: list[str] | None) -> Namespace:
     """Parses the command line arguments and trigger the relevant actions.
 
@@ -93,13 +66,11 @@ def parse_args(args: list[str] | None) -> Namespace:
         help="desired action for this program.",
         required=True,
     )
-    # pylint: disable=unused-variable
-    parser_check = subparsers.add_parser(
+    subparsers.add_parser(
         "check",
         help="checks that the StackExchange API keys and tokens are set properly.",
     )
-    # pylint: disable=unused-variable
-    parser_auth = subparsers.add_parser(
+    subparsers.add_parser(
         "auth",
         help="triggers the API authentication process to obtain an API token.",
     )
@@ -166,18 +137,6 @@ def parse_args(args: list[str] | None) -> Namespace:
     )
     return parser.parse_args(args)
 
-    # filter: str = None,
-    # page: int = None,
-    # pagesize: int = None,
-    # fromdate: int = None,
-    # todate: int = None,
-    # order: Order = None,
-    # # pylint: disable=redefined-builtin
-    # min: int = None,
-    # max: int = None,
-    # sort: QuestionSortMethod = None,
-    # tagged: str = None,
-
 
 def main():
     """Main logic."""
@@ -202,11 +161,19 @@ def main():
         client_id = retrieve_client_id()
         key = retrieve_key()
         token = retrieve_token()
-        print_check_result(client_id, key, token)
+        if all((client_id, key, token)):
+            so_logger.info(
+                "All the environment variables seem to be set correctly, and a value"
+                " has been retrieved for all of them."
+            )
+
     if cmdline.action == "auth":
         client_id = retrieve_client_id()
         get_authorization_url(client_id)
         get_access_token_from_url()
+    if cmdline.action == "fetch":
+        key = retrieve_key()
+        token = retrieve_token()
 
 
 if __name__ == "__main__":

@@ -1,40 +1,7 @@
 """Test module for the script so_updater.py"""
 
-
 import pytest
-from so_updater import parse_args, print_check_result
-from tests.test_auth import override_env_variable
-
-
-class TestPrintCheckResults:
-    """Tests for so_importer.print_check_results()"""
-
-    @pytest.mark.parametrize(
-        "args, message",
-        [
-            (
-                ["test_key", "Test_client", "test_token"],
-                r"All environment variables could be retrieved",
-            ),
-            (
-                [None, "Test_client", "test_token"],
-                r"The client_ID is missing",
-            ),
-            (
-                ["test_key", None, "test_token"],
-                r"The key is missing",
-            ),
-            (
-                ["test_key", "Test_client", None],
-                r"The OAuth token is missing",
-            ),
-        ],
-    )
-    def test_all_variables_ok(self, args, message, caplog):
-        """Test that it displays a confirmation if all env variables are OK."""
-
-        print_check_result(*args)
-        assert message in caplog.records[0].msg
+from so_updater import parse_args
 
 
 def test_parse_args_no_args(capsys):

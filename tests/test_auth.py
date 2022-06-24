@@ -1,81 +1,88 @@
 """Tests for the stack_overflow_importer/auth.py module."""
 
-import contextlib
-import os
+import logging
 import re
 
 import pytest
 from stack_overflow_importer import auth
 
 
-@contextlib.contextmanager
-def override_env_variable(**kwargs):
-    """Context manager that overrides environment variables.
+class TestRetrieveEnvVariable:
+    """Tests for auth.retrieve_env_variable()."""
 
-    Params
-    ------
-        **kwargs : a dict of key value variables
-    """
-    backup = dict(os.environ)
-    for key, value in kwargs.items():
-        if value is None:
-            if os.environ.get(key):
-                del os.environ[key]
-        else:
-            os.environ[key] = value
-    try:
-        yield
-    finally:
-        os.environ.clear()
-        os.environ.update(backup)
+    def test_ok(self, monkeypatch):
+        """Tests when the variable exists."""
+        monkeypatch.setenv("SO_DUMMY_TEST_VAR", "test_var")
+        var = auth.retrieve_env_variable("SO_DUMMY_TEST_VAR")
+        assert var == "test_var"
+
+    def test_no_args(self, caplog):
+        """Tests when the variable doesn't exists."""
+        auth.retrieve_env_variable(None)
+        assert "An environment variable name must be supplied" in caplog.records[0].msg
+
+    def test_variable_doesnt_exist(self, monkeypatch, caplog):
+        """Tests when the variable doesn't exists."""
+        monkeypatch.delenv("SO_DUMMY_TEST_VAR", raising=False)
+        auth.retrieve_env_variable("SO_DUMMY_TEST_VAR")
+        assert caplog.record_tuples == [
+            (
+                "so_importer",
+                logging.ERROR,
+                "Couldn't find the environment variable SO_DUMMY_TEST_VAR.",
+            )
+        ]
 
 
 class TestRetrieveClientID:
     """Tests for auth.retrieve_client_id()."""
 
-    def test_key_exists(self):
+    def test_key_exists(self, monkeypatch):
         """Test for auth.retrieve_key() - when the key exists"""
-        with override_env_variable(SO_IMPORTER_CLIENT_ID="test_client"):
-            key = auth.retrieve_client_id()
-            assert key == "test_client"
+        monkeypatch.setenv("SO_IMPORTER_CLIENT_ID", "test_client")
+        key = auth.retrieve_client_id()
+        assert key == "test_client"
 
-    def test_key_doesnt_exist(self):
+    def test_key_doesnt_exist(self, monkeypatch, caplog):
         """Test for auth.retrieve_key() - when the key doesn't exists"""
-        with override_env_variable(SO_IMPORTER_CLIENT_ID=None):
-            key = auth.retrieve_client_id()
-            assert key is None
+        monkeypatch.delenv("SO_IMPORTER_CLIENT_ID", raising=False)
+        key = auth.retrieve_client_id()
+        assert key is None
+        assert "The Client ID is missing" in caplog.text
 
 
 class TestRetrieveKey:
     """Tests for auth.retrieve_key()."""
 
-    def test_key_exists(self):
+    def test_key_exists(self, monkeypatch):
         """Test for auth.retrieve_key() - when the key exists"""
-        with override_env_variable(SO_IMPORTER_KEY="test_key"):
-            key = auth.retrieve_key()
-            assert key == "test_key"
+        monkeypatch.setenv("SO_IMPORTER_KEY", "test_key")
+        key = auth.retrieve_key()
+        assert key == "test_key"
 
-    def test_key_doesnt_exist(self):
+    def test_key_doesnt_exist(self, monkeypatch, caplog):
         """Test for auth.retrieve_key() - when the key doesn't exists"""
-        with override_env_variable(SO_IMPORTER_KEY=None):
-            key = auth.retrieve_key()
-            assert key is None
+        monkeypatch.delenv("SO_IMPORTER_KEY", raising=False)
+        key = auth.retrieve_key()
+        assert key is None
+        assert "The key is missing" in caplog.text
 
 
 class TestRetrieveToken:
     """Tests for auth.retrieve_token()."""
 
-    def test_ok(self):
+    def test_token_exists(self, monkeypatch):
         """Tests when the token exists."""
-        with override_env_variable(SO_IMPORTER_TOKEN="test_token"):
-            key = auth.retrieve_token()
-            assert key == "test_token"
+        monkeypatch.setenv("SO_IMPORTER_TOKEN", "test_token")
+        key = auth.retrieve_token()
+        assert key == "test_token"
 
-    def test_ko(self):
+    def test_key_doesnt_exist(self, monkeypatch, caplog):
         """Tests when the token doesn't exists."""
-        with override_env_variable(SO_IMPORTER_TOKEN=None):
-            key = auth.retrieve_token()
-            assert key is None
+        monkeypatch.delenv("SO_IMPORTER_TOKEN", raising=False)
+        key = auth.retrieve_token()
+        assert key is None
+        assert "The OAuth token is missing" in caplog.text
 
 
 class TestGetAuthorizationURL:
@@ -92,26 +99,6 @@ class TestGetAuthorizationURL:
             r"https://stackexchange.com/oauth/dialog\?response_type=code\&client_id=\d+\&redirect_uri=https%3A%2F%2Fstackexchange\.com%2Foauth%2Flogin_success&scope=no_expiry&state=[a-zA-Z\d]*",
             url,
         )
-
-
-class TestRetrieveEnvVariable:
-    """Tests for auth.retrieve_env_variable()."""
-
-    def test_ok(self):
-        """Tests when the variable exists."""
-        with override_env_variable(SO_DUMMY_TEST_VAR="test_var"):
-            var = auth.retrieve_env_variable("SO_DUMMY_TEST_VAR")
-            assert var == "test_var"
-
-    def test_no_args(self, caplog):
-        """Tests when the variable doesn't exists."""
-        auth.retrieve_env_variable(None)
-        assert "An environment variable name must be supplied" in caplog.records[0].msg
-
-    def test_variable_doesnt_exist(self, caplog):
-        """Tests when the variable doesn't exists."""
-        auth.retrieve_env_variable("SO_DUMMY_TEST_VAR")
-        assert "Couldn't find the environment variable." in caplog.records[0].msg
 
 
 class TestGetAccessTokenFromUrl:

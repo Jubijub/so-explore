@@ -9,36 +9,6 @@ from requests_oauthlib import OAuth2Session
 so_logger = logging.getLogger("so_importer")
 
 
-def retrieve_client_id() -> str | None:
-    """Retrieves the API client ID from the environment variables (if it exists).
-
-    Returns
-    -------
-        key : the API client ID from the variable SO_IMPORTER_CLIENT_ID
-    """
-    return retrieve_env_variable("SO_IMPORTER_CLIENT_ID")
-
-
-def retrieve_key() -> str | None:
-    """Retrieves the API key from the environment variables (if it exists).
-
-    Returns
-    -------
-        key : the API key from the variable SO_IMPORTER_KEY
-    """
-    return retrieve_env_variable("SO_IMPORTER_KEY")
-
-
-def retrieve_token() -> str | None:
-    """Retrieves the API token from the environment variables (if it exists).
-
-    Returns
-    -------
-        token : the API token from the variable SO_IMPORTER_TOKEN
-    """
-    return retrieve_env_variable("SO_IMPORTER_TOKEN")
-
-
 def retrieve_env_variable(variable_name: str | None) -> str | None:
     """Retrieves the key name `variable_name` from the environment variables
 
@@ -51,9 +21,66 @@ def retrieve_env_variable(variable_name: str | None) -> str | None:
         so_logger.error("An environment variable name must be supplied")
         return None
     if variable_name not in os.environ:
-        so_logger.warning("Couldn't find the environment variable.")
+        so_logger.error("Couldn't find the environment variable %s.", variable_name)
         return None
     return os.environ[variable_name]
+
+
+def retrieve_client_id() -> str | None:
+    """Retrieves the API client ID from the environment variables (if it exists).
+
+    Returns
+    -------
+        key : the API client ID from the variable SO_IMPORTER_CLIENT_ID
+    """
+    var = retrieve_env_variable("SO_IMPORTER_CLIENT_ID")
+    if var:
+        return var
+    else:
+        so_logger.error(
+            "The Client ID is missing. Make sure to"
+            " register your app to `https://stackapps.com/apps/oauth/register` and set"
+            " the Environment variable `SO_IMPORTER_CLIENT_ID` with the `clientID`"
+            " value provided by StackApps."
+        )
+
+
+def retrieve_key() -> str | None:
+    """Retrieves the API key from the environment variables (if it exists).
+
+    Returns
+    -------
+        key : the API key from the variable SO_IMPORTER_KEY
+    """
+    var = retrieve_env_variable("SO_IMPORTER_KEY")
+    if var:
+        return var
+    else:
+        so_logger.error(
+            "The key is missing. Make sure to"
+            " register your app to `https://stackapps.com/apps/oauth/register` and set"
+            " the Environment variable `SO_IMPORTER_KEY` with the `key` value provided"
+            " by StackApps."
+        )
+
+
+def retrieve_token() -> str | None:
+    """Retrieves the API token from the environment variables (if it exists).
+
+    Returns
+    -------
+        token : the API token from the variable SO_IMPORTER_TOKEN
+    """
+    var = retrieve_env_variable("SO_IMPORTER_TOKEN")
+    if var:
+        return var
+    else:
+        so_logger.error(
+            "The OAuth token is missing. Make sure to"
+            " use this app with the `-auth` parameter and complete the authentication. "
+            " The command line will print the token. Make sure to set the Environment"
+            " variable `SO_IMPORTER_TOKEN` with the token provided."
+        )
 
 
 def get_authorization_url(client_id: str | None) -> tuple[str, str]:
