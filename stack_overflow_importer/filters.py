@@ -2,6 +2,9 @@
 
 from stack_overflow_importer.base import query_method
 
+"""
+Default fields that should be used for all filters
+"""
 INCLUDE_DEFAULT = (
     ".backoff;"
     ".error_id;"
@@ -15,6 +18,9 @@ INCLUDE_DEFAULT = (
     ".quota_remaining;"
     # ".total;"
 )
+"""
+Relevant fields for Questions
+"""
 INCLUDE_QUESTION = (
     "question.tags;"
     "question.is_answered;"
@@ -30,6 +36,9 @@ INCLUDE_QUESTION = (
     "question.title;"
     # 'question.body;'
 )
+"""
+Relevant fields for testing Questions API
+"""
 INCLUDE_QUESTION_TEST = (
     # "question.tags;"
     # "question.is_answered;"
@@ -45,6 +54,9 @@ INCLUDE_QUESTION_TEST = (
     "question.title;"
     # 'question.body;'
 )
+"""Filter string that can be used for testing questions.
+Generated with 2.3 API on June 2022."""
+QUESTION_TEST_FILTER = "!)GrKmj4SO9s6)An"
 
 
 def create_filter(
