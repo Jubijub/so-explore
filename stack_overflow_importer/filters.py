@@ -51,10 +51,10 @@ def create_filter(
     key: str,
     access_token: str,
     base: str,
-    include: str = None,
-    exclude: str = None,
+    include: str | None = None,
+    exclude: str | None = None,
     unsafe: bool = False,
-) -> str:
+) -> str | None:
     """Creates a custom filter for Stack Exchange API
 
     Useful context :
@@ -92,7 +92,7 @@ def create_filter(
     return query_method("filters/create", key, access_token, params)
 
 
-def get_filter_id(filter_jason) -> str:
+def get_filter_id(filter_jason) -> str | None:
     """Extracts the filter ID from a create filter JSON response.
 
     Parameters

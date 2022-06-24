@@ -54,7 +54,7 @@ class TestBuildQuestionsParams:
         "field, value, result, exception, exception_message",
         [
             ("page", None, None, None, None),
-            ("page", 30, 30, None, None),
+            ("page", 30, "30", None, None),
             ("page", 0, None, ValueError, r"The page number provided 0 is not valid"),
             ("page", -1, None, ValueError, r"The page number provided -1 is not valid"),
             (
@@ -76,7 +76,7 @@ class TestBuildQuestionsParams:
         "field, value, result, exception, exception_message",
         [
             ("pagesize", None, None, None, None),
-            ("pagesize", 10, 10, None, None),
+            ("pagesize", 10, "10", None, None),
             (
                 "pagesize",
                 -1,
@@ -202,10 +202,10 @@ class TestBuildQuestionsParams:
             ("order", questions.Order.ASC, "asc", None, None),
             ("order", "desc", None, ValueError, None),
             ("min", None, None, None, None),
-            ("min", 10, 10, None, None),
+            ("min", 10, "10", None, None),
             ("min", "foo", None, ValueError, None),
             ("max", None, None, None, None),
-            ("max", 50, 50, None, None),
+            ("max", 50, "50", None, None),
             ("max", "foo", None, ValueError, None),
             ("sort", None, None, None, None),
             ("sort", questions.QuestionSortMethod.ACTIVITY, "activity", None, None),
@@ -223,7 +223,7 @@ class TestBuildQuestionsParams:
         "field, value, result, exception, exception_message",
         [
             ("min", None, None, None, None),
-            ("min", 10, 10, None, None),
+            ("min", 10, "10", None, None),
             ("min", "foo", None, ValueError, None),
         ],
     )
@@ -235,7 +235,7 @@ class TestBuildQuestionsParams:
         "field, value, result, exception, exception_message",
         [
             ("max", None, None, None, None),
-            ("max", 50, 50, None, None),
+            ("max", 50, "50", None, None),
             ("max", "foo", None, ValueError, None),
         ],
     )

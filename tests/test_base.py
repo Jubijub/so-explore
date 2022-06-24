@@ -13,8 +13,11 @@ def test_query_method_live_call():
     key = retrieve_key()
     token = retrieve_token()
     response = query_method("info", key, token, {"site": "stackoverflow"})
+    assert response is not None
     assert "items" in response.keys()
-    assert "api_revision" in response.get("items")[0].keys()
+    items = response.get("items")
+    assert items is not None
+    assert "api_revision" in items[0].keys()
 
 
 class MockResponse:
@@ -55,5 +58,8 @@ def test_query_method(monkeypatch):
 
     monkeypatch.setattr(stack_overflow_importer.base.requests, "get", mock_get)
     response = query_method("info", "key", "token", {"site": "stackoverflow"})
+    assert response is not None
     assert "items" in response.keys()
-    assert "api_revision" in response.get("items")[0].keys()
+    items = response.get("items")
+    assert items is not None
+    assert "api_revision" in items[0].keys()

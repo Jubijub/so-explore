@@ -74,7 +74,7 @@ def print_check_result(client_id, key, token):
     so_logger.info("All environment variables could be retrieved.")
 
 
-def parse_args(args: list[str]) -> Namespace:
+def parse_args(args: list[str] | None) -> Namespace:
     """Parses the command line arguments and trigger the relevant actions.
 
     Arguments
@@ -86,7 +86,6 @@ def parse_args(args: list[str]) -> Namespace:
         a Namespace object containing the parsed arguments
     """
     parser = argparse.ArgumentParser(
-        args,
         description="Utility to import Stack overflow questions.",
     )
     subparsers = parser.add_subparsers(

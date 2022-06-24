@@ -7,7 +7,9 @@ BASE_SITE = "https://api.stackexchange.com"
 VERSION = "2.3"
 
 
-def query_method(method: str, key: str, access_token: str, params: dict):
+def query_method(
+    method: str, key: str | None, access_token: str | None, params: dict
+) -> dict | None:
     """Queries a Stack Exchange API endpoint and provides the JSON response.
 
     Parameters

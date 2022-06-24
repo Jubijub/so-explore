@@ -9,7 +9,7 @@ from requests_oauthlib import OAuth2Session
 so_logger = logging.getLogger("so_importer")
 
 
-def retrieve_client_id() -> str:
+def retrieve_client_id() -> str | None:
     """Retrieves the API client ID from the environment variables (if it exists).
 
     Returns
@@ -19,7 +19,7 @@ def retrieve_client_id() -> str:
     return retrieve_env_variable("SO_IMPORTER_CLIENT_ID")
 
 
-def retrieve_key() -> str:
+def retrieve_key() -> str | None:
     """Retrieves the API key from the environment variables (if it exists).
 
     Returns
@@ -29,7 +29,7 @@ def retrieve_key() -> str:
     return retrieve_env_variable("SO_IMPORTER_KEY")
 
 
-def retrieve_token() -> str:
+def retrieve_token() -> str | None:
     """Retrieves the API token from the environment variables (if it exists).
 
     Returns
@@ -39,7 +39,7 @@ def retrieve_token() -> str:
     return retrieve_env_variable("SO_IMPORTER_TOKEN")
 
 
-def retrieve_env_variable(variable_name: str) -> str:
+def retrieve_env_variable(variable_name: str | None) -> str | None:
     """Retrieves the key name `variable_name` from the environment variables
 
     Returns
@@ -56,7 +56,7 @@ def retrieve_env_variable(variable_name: str) -> str:
     return os.environ[variable_name]
 
 
-def get_authorization_url(client_id: str) -> tuple[str, str]:
+def get_authorization_url(client_id: str | None) -> tuple[str, str]:
     """Retrieves and displays the authorization URL for a given Stack overflow client ID.
 
     This URL is to be accessed in a browser to grant access to this application.
@@ -82,6 +82,8 @@ def get_authorization_url(client_id: str) -> tuple[str, str]:
         f" the authentication: {Style.RESET_ALL}"
         f"\n{Fore.BLUE}{authorization_url}"
     )
+    assert isinstance(authorization_url, str)
+    assert isinstance(state, str)
     return authorization_url, state
 
 

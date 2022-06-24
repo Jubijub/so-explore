@@ -29,17 +29,17 @@ class QuestionSortMethod(StrEnum):
 
 
 def build_questions_params(
-    filter: str = None,
-    page: int = None,
-    pagesize: int = None,
-    fromdate: int | str = None,
-    todate: int | str = None,
-    order: Order = None,
+    filter: str | None = None,
+    page: int | None = None,
+    pagesize: int | None = None,
+    fromdate: int | float | str | None = None,
+    todate: int | float | str | None = None,
+    order: Order | None = None,
     # pylint: disable=redefined-builtin
-    min: int = None,
-    max: int = None,
-    sort: QuestionSortMethod = None,
-    tagged: str = None,
+    min: int | None = None,
+    max: int | None = None,
+    sort: QuestionSortMethod | None = None,
+    tagged: str | None = None,
 ) -> dict:
     """Build a params dict for the `questions` method.
 
@@ -103,7 +103,7 @@ def build_questions_params(
             raise ValueError(
                 f"The page number provided {page} is not valid. It should be an integer"
             )
-        params["page"] = page
+        params["page"] = str(page)
     if pagesize is not None:
         if pagesize < 1 or pagesize > 30:
             so_logger.error(
@@ -125,7 +125,7 @@ def build_questions_params(
                 f"The pagesize number provided {pagesize} is not valid. It should be an"
                 " integer"
             )
-        params["pagesize"] = pagesize
+        params["pagesize"] = str(pagesize)
     if fromdate is not None:
         if isinstance(fromdate, int) or isinstance(fromdate, float):
             try:
@@ -191,13 +191,13 @@ def build_questions_params(
             raise ValueError(
                 f"The min provided {min} is not valid. It must be an integer."
             )
-        params["min"] = min
+        params["min"] = str(min)
     if max is not None:
         if not isinstance(max, int):
             raise ValueError(
                 f"The max provided {max} is not valid. It must be an integer."
             )
-        params["max"] = max
+        params["max"] = str(max)
     if sort is not None:
         if not isinstance(sort, QuestionSortMethod):
             raise ValueError(
@@ -213,20 +213,20 @@ def build_questions_params(
 
 
 def get_questions(
-    key: str = None,
-    access_token: str = None,
-    filter: str = None,
-    page: int = None,
-    pagesize: int = None,
-    fromdate: int = None,
-    todate: int = None,
-    order: Order = None,
+    key: str | None = None,
+    access_token: str | None = None,
+    filter: str | None = None,
+    page: int | None = None,
+    pagesize: int | None = None,
+    fromdate: int | float | None = None,
+    todate: int | float | None = None,
+    order: Order | None = None,
     # pylint: disable=redefined-builtin
-    min: int = None,
-    max: int = None,
-    sort: QuestionSortMethod = None,
-    tagged: str = None,
-):
+    min: int | None = None,
+    max: int | None = None,
+    sort: QuestionSortMethod | None = None,
+    tagged: str | None = None,
+) -> dict | None:
     """Queries Stack Overflow API to retrieve questions.
 
     All parameters from the API are exposed and work as described here
@@ -291,7 +291,8 @@ def get_all_questions(key, access_token, filter=None):
         sort=QuestionSortMethod.CREATION,
         order=Order.ASC,
     )
-    print(f'Has more={response.get("has_more")}')
+    if response:
+        print(f'Has more={response.get("has_more")}')
 
     print(dumps(response, indent=2))
 
@@ -307,6 +308,7 @@ def get_all_questions(key, access_token, filter=None):
         sort=QuestionSortMethod.CREATION,
         order=Order.ASC,
     )
-    print(f'Has more={response.get("has_more")}')
+    if response:
+        print(f'Has more={response.get("has_more")}')
 
     print(dumps(response, indent=2))
