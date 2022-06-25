@@ -1,6 +1,9 @@
 """Script to auto update the question bank from Stack Exchange."""
 from argparse import ArgumentParser
+import sys
+from typing import Any
 import argparse
+import json
 import logging
 import colorama
 import coloredlogs
@@ -12,6 +15,8 @@ from stack_overflow_importer.auth import (
     retrieve_key,
     retrieve_token,
 )
+from stack_overflow_importer.filters import QUESTION_TEST_FILTER_ID
+from stack_overflow_importer.questions import get_questions
 
 
 def init_logging() -> logging.Logger:
@@ -134,43 +139,69 @@ def build_args_parser() -> ArgumentParser:
     return parser
 
 
+def extract(obj: object, attribute: str, default: Any = None) -> str | None:
+    """Utility to get an object attribute value in case the attribute exist but is None
+    or in case the attribute doesn't exist. This is useful because getattr alone
+    doesn't return the default if the attribute exists but is None."""
+    try:
+        result = getattr(obj, attribute)
+        if result:
+            return result
+        if default:
+            return str(default)
+
+    except AttributeError:
+        if default is None:
+            return None
+        return str(default)
+
+
 def main():
     """Main logic."""
     colorama.init(autoreset=True)
 
-    # if sys.argv[1].casefold() == "-update":
-    #     key = retrieve_key()
-    #     token = retrieve_token()
-    #     # filter_json = create_filter(
-    #     #     key, token, "none", INCLUDE_DEFAULT + INCLUDE_QUESTION_TEST
-    #     # )
-    #     # filter_id = get_filter_id(filter_json)
-    #     # print(filter_id)
-    #     # Filter question test : !)GrKmj4SO9s6)An
-    #     # Filter question :
-    #     get_all_questions(key, token, filter="!)GrKmj4SO9s6)An")
-
     cmdline = build_args_parser().parse_args(None)
     if not cmdline or not cmdline.action:
         raise Exception("Critical issue in parsing the command line")
-    if cmdline.action == "check":
-        client_id = retrieve_client_id()
-        key = retrieve_key()
-        token = retrieve_token()
-        if all((client_id, key, token)):
-            so_logger.info(
-                "All the environment variables seem to be set correctly, and a value"
-                " has been retrieved for all of them."
-            )
 
-    if cmdline.action == "auth":
-        client_id = retrieve_client_id()
-        get_authorization_url(client_id)
-        get_access_token_from_url()
+    try:
+        match cmdline.action:
+            case "check":
+                client_id = retrieve_client_id()
+                key = retrieve_key()
+                token = retrieve_token()
+                if all((client_id, key, token)):
+                    so_logger.info(
+                        "All the environment variables seem to be set correctly, and a"
+                        " value has been retrieved for all of them."
+                    )
 
-    if cmdline.action == "questions":
-        key = retrieve_key()
-        token = retrieve_token()
+            case "auth":
+                client_id = retrieve_client_id()
+                get_authorization_url(client_id)
+                get_access_token_from_url()
+
+            case "questions":
+                key = retrieve_key()
+                token = retrieve_token()
+                response = get_questions(
+                    key,
+                    token,
+                    extract(cmdline, "filter", QUESTION_TEST_FILTER_ID),
+                    extract(cmdline, "page", 1),
+                    extract(cmdline, "pagesize", 30),
+                    extract(cmdline, "fromdate", None),
+                    extract(cmdline, "todate", None),
+                    extract(cmdline, "order", None),
+                    extract(cmdline, "min", None),
+                    extract(cmdline, "max", None),
+                    extract(cmdline, "sort", None),
+                    extract(cmdline, "tagged", None),
+                )
+                print(json.dumps(response, indent=2))
+    # pylint: disable=broad-except
+    except Exception:
+        so_logger.critical("Fatal error", exc_info=True)
 
 
 if __name__ == "__main__":

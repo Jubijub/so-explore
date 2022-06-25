@@ -56,7 +56,7 @@ INCLUDE_QUESTION_TEST = (
 )
 """Filter string that can be used for testing questions.
 Generated with 2.3 API on June 2022."""
-QUESTION_TEST_FILTER = "!)GrKmj4SO9s6)An"
+QUESTION_TEST_FILTER_ID = "!)GrKmj4SO9s6)An"
 
 
 def create_filter(

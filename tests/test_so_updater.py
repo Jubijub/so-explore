@@ -2,7 +2,7 @@
 
 import re
 import pytest
-from so_updater import build_args_parser
+from so_updater import build_args_parser, extract
 
 
 def valid_args_tester(args, expected) -> bool:
@@ -184,3 +184,76 @@ class TestBuildArgsParserQuestions:
             # so_updater.py: error: unrecognized arguments: --LOL
             capsys,
         )
+
+
+class DummyObject:
+    """Dummy class to test attribute extraction"""
+
+    def __init__(self):
+        # pylint: disable=invalid-name, unused-variable
+        self.a = 12
+        self.b = "test"
+        self.c = None
+
+
+class TestExtract:
+    """Tests for so_importer.extract() utility method."""
+
+    @pytest.fixture()
+    def obj(self):
+        """Fixture to return a fresh DummyObject for each test."""
+        return DummyObject()
+
+    def test_attribute_exists_and_has_value(self, obj):
+        """GIVEN a mock object
+        GIVEN a valid attribute which has a value
+        SHOULD return the value for that attribute.
+        """
+        result = extract(obj, "a")
+        assert result == 12
+        result2 = extract(obj, "b")
+        assert result2 == "test"
+
+    def test_attribute_exists_and_has_value_default_provided(self, obj):
+        """GIVEN a mock object
+        GIVEN a valid attribute which has a value
+        GIVEN a default value
+        SHOULD return the value for that attribute and ignore the default
+        """
+        result = extract(obj, "a", 42)
+        assert result == 12
+        result2 = extract(obj, "b", "DEFAULT")
+        assert result2 == "test"
+
+    def test_attribute_exists_and_has_no_value(self, obj):
+        """GIVEN a mock object
+        GIVEN a valid attribute which has no value
+        SHOULD return None
+        """
+        result = extract(obj, "c")
+        assert result is None
+
+    def test_attribute_exists_and_has_no_value_default_provided(self, obj):
+        """GIVEN a mock object
+        GIVEN a valid attribute which has a value
+        GIVEN a default value
+        SHOULD return the default value
+        """
+        result = extract(obj, "c", "DEFAULT")
+        assert result == "DEFAULT"
+
+    def test_attribute_doesnt_exist(self, obj):
+        """GIVEN a mock object
+        GIVEN an attribute which doesn't exist
+        SHOULD return None
+        """
+        result = extract(obj, "d")
+        assert result == None
+
+    def test_attribute_doesnt_exist_default_provided(self, obj):
+        """GIVEN a mock object
+        GIVEN an attribute which doesn't exist
+        SHOULD return None
+        """
+        result = extract(obj, "d", "DEFAULT")
+        assert result == "DEFAULT"
